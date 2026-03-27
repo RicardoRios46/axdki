@@ -6,7 +6,7 @@ Diffusion Weighted MRI (dMRI) is a cool technology that has improved our underst
 **Skills for project:** Familiarity with matlab, python, git, dMRI... But not really, everyone is welcome. If you are interested in any of these topics you can join. Skill level doesn't matter.
 
 ## Project Goals
-Check the vibe coded plan here: 
+Check the vibe coded plan [here](ThePlan.md)
 
 ### TL;DR
 #### Day 1
@@ -14,14 +14,14 @@ Check the vibe coded plan here:
 2. Undestand how `nii2kurt.m` operates. Identify the axysimmetric DKI fitting.
 3. Translate the `nii2kurt.m` axisymmetric DKI fitting algorithm from MATLAB to Python.
 
-Repository:
+[Day 1 Git Repository](https://github.com/RicardoRios46/axdki)
 
 #### Day 2
 4. Integrate implementation into DIPY following the existing class architecture.
 5. Validate outputs against the MATLAB reference implementation.
 6. Provide tests and a tutorial notebook for the DIPY community.
 
-Repository:
+[Day 2 Git Repository](https://github.com/RicardoRios46/dipy/tree/axdki)
 
 
 ### Code to Port
