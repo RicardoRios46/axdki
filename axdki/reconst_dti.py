@@ -76,27 +76,23 @@ from dipy.data import get_fnames
 
 
 hardi_fname, hardi_bval_fname, hardi_bvec_fname = get_fnames(name="stanford_hardi")
+test_fname = '/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_sample/sub-01/dwi/sub-01_run-01_acq-lte_desc-preproc_dwi.nii.gz'
+test_bval_fname = '/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_sample/sub-01/dwi/sub-01_run-01_acq-lte_desc-preproc_dwi.bval'
+test_bvec_fname = '/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_sample/sub-01/dwi/sub-01_run-01_acq-lte_desc-preproc_dwi.bvec'
 
-data, affine = load_nifti(hardi_fname)
-
-bvals, bvecs = read_bvals_bvecs(hardi_bval_fname, hardi_bvec_fname)
+data, affine = load_nifti(test_fname)
+bvals, bvecs = read_bvals_bvecs(test_bval_fname, test_bvec_fname)
 gtab = gradient_table(bvals, bvecs=bvecs)
-
-print(f"data.shape {data.shape}")
 
 from dipy.segment.mask import bounding_box, crop, median_otsu
 
-maskdata, mask = median_otsu(
-    data, vol_idx=range(10, 50), median_radius=3, numpass=1, dilate=2
-)
+maskdata, mask = median_otsu(data, vol_idx=range(10, 49), median_radius=3, numpass=1, dilate=2)
 
 mins, maxs = bounding_box(mask)
 
 maskdata = crop(maskdata, mins, maxs)
 mask = crop(mask, mins, maxs)
-
-print(f"maskdata.shape {maskdata.shape}")
-
+y
 tenmodel = dti.TensorModel(gtab, fit_method="WLS")
 
 ###############################################################################
@@ -153,41 +149,14 @@ FA[np.isnan(FA)] = 0
 save_nifti("tensor_fa.nii.gz", FA.astype(np.float32), affine)
 save_nifti("tensor_evecs.nii.gz", tenfit.evecs.astype(np.float32), affine)
 
-###############################################################################
-# Other tensor statistics can be calculated from the ``tenfit`` object. For
-# example, a commonly calculated statistic is the mean diffusivity (MD). This is
-# simply the mean of the  eigenvalues of the tensor. Since FA is a normalized
-# measure of variance and MD is the mean, they are often used as complimentary
-# measures. In DIPY, there are two equivalent ways to calculate the mean
-# diffusivity. One is by calling the ``mean_diffusivity`` module function on the
-# eigen-values of the ``TensorFit`` class instance:
-
-
 MD1 = dti.mean_diffusivity(tenfit.evals)
 save_nifti("tensors_md.nii.gz", MD1.astype(np.float32), affine)
 
-###############################################################################
-# The other is to call the ``TensorFit`` class method:
-
-
 MD2 = tenfit.md
-
-###############################################################################
-# Obviously, the quantities are identical.
-# 
-# We can also compute the colored FA or RGB-map :footcite:p:`Pajevic1999`. First,
-# we make sure that the FA is scaled between 0 and 1, we compute the RGB map and
-# save it.
-
 
 FA = np.clip(FA, 0, 1)
 RGB = color_fa(FA, tenfit.evecs)
 save_nifti("tensor_rgb.nii.gz", np.array(255 * RGB, "uint8"), affine)
-
-###############################################################################
-# Let's try to visualize the tensor ellipsoids of a small rectangular
-# area in an axial slice of the splenium of the corpus callosum (CC).
-
 
 print("Computing tensor ellipsoids in a part of the splenium of the CC")
 
@@ -205,12 +174,6 @@ scene = window.Scene()
 evals = tenfit.evals[13:43, 44:74, 28:29]
 evecs = tenfit.evecs[13:43, 44:74, 28:29]
 
-###############################################################################
-# We can color the ellipsoids using the ``color_fa`` values that we calculated
-# above. In this example we additionally normalize the values to increase the
-# contrast.
-
-
 cfa = RGB[13:43, 44:74, 28:29]
 cfa /= cfa.max()
 
@@ -225,18 +188,7 @@ window.record(
 if interactive:
     window.show(scene)
 
-###############################################################################
-# .. rst-class:: centered small fst-italic fw-semibold
-# 
-# Tensor Ellipsoids.
-
-
 scene.clear()
-
-###############################################################################
-# Finally, we can visualize the tensor Orientation Distribution Functions
-# for the same area as we did with the ellipsoids.
-
 
 tensor_odfs = tenmodel.fit(data[20:50, 55:85, 38:39]).odf(sphere)
 
@@ -247,29 +199,3 @@ window.record(scene=scene, n_frames=1, out_path="tensor_odfs.png", size=(600, 60
 if interactive:
     window.show(scene)
 
-###############################################################################
-# .. rst-class:: centered small fst-italic fw-semibold
-# 
-# Tensor ODFs.
-# 
-# 
-# Note that while the tensor model is an accurate and reliable model of the
-# diffusion signal in the white matter, it has the drawback that it only has one
-# principal diffusion direction. Therefore, in locations in the brain that
-# contain multiple fiber populations crossing each other, the tensor model may
-# indicate that the principal diffusion direction is intermediate to these
-# directions. Therefore, using the principal diffusion direction for tracking in
-# these locations may be misleading and may lead to errors in defining the
-# tracks. Fortunately, other reconstruction methods can be used to represent the
-# diffusion and fiber orientations in those locations. These are presented in
-# other examples.
-# 
-# References
-# ----------
-# .. footbibliography::
-# 
-
-
-###############################################################################
-# .. include:: ../../links_names.inc
-#

@@ -53,3 +53,31 @@ cos_theta = np.sum(
     bvecs[np.newaxis, np.newaxis, np.newaxis, :, :],
     axis=-1
 )
+
+
+b = bvals[None, None, None, :]
+c = cos_theta
+c2 = c**2
+c4 = c**4
+
+A = np.empty(c.shape + (6,), dtype=c.dtype)
+
+A[..., 0] = 1
+A[..., 1] = -b * (1 - c2)
+A[..., 2] = -b * c2
+A[..., 3] = (b**2 / 6) * (5*c4 - 6*c2 + 1)
+A[..., 4] = (b**2 / 6) * (0.5 * c2 * (5*c2 - 3))
+A[..., 5] = (b**2 / 6) * (-15/2 * (c4 - c2))
+
+A = A.reshape(-1, 6)
+maskdata_log = np.log(maskdata)
+maskdata_log = maskdata_log.reshape(-1)
+
+X = np.linalg.lstsq(A, maskdata, rcond=None)
+
+X = np.linalg.pinv(A) @ maskdata 
+
+fit_result = np.linalg.solve(
+    np.einsum('ntk,ntl->nkl', A, A),
+    np.einsum('ntk,nt->nk', A, maskdata_log)
+)
