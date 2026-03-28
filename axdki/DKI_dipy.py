@@ -73,11 +73,30 @@ A = A.reshape(-1, 6)
 maskdata_log = np.log(maskdata)
 maskdata_log = maskdata_log.reshape(-1)
 
-X = np.linalg.lstsq(A, maskdata, rcond=None)
 
-X = np.linalg.pinv(A) @ maskdata 
+nx, ny, nz, nt = maskdata.shape
 
-fit_result = np.linalg.solve(
-    np.einsum('ntk,ntl->nkl', A, A),
-    np.einsum('ntk,nt->nk', A, maskdata_log)
-)
+S = np.log(np.clip(maskdata, 1e-6, None))
+S = S.reshape(-1, nt)
+A = A.reshape(-1, nt, 6)
+mask = mask.reshape(-1)
+
+X = np.zeros((S.shape[0], 6))
+
+I = np.eye(6) * 1e-6
+
+for v in range(S.shape[0]):
+    if not mask[v]:
+        continue
+    Av = A[v]
+    y = S[v]
+    ATA = Av.T @ Av
+    ATy = Av.T @ y
+    X[v] = np.linalg.solve(ATA + I, ATy)
+
+X = X.reshape(nx, ny, nz, 6)
+
+
+save_nifti("/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_sample/test_lucas/S0.nii.gz", X[:,:,:,0], affine)
+save_nifti("/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_sample/test_lucas/Dperp.nii.gz", X[:,:,:,1], affine)
+save_nifti("/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_sample/test_lucas/Wmean.nii.gz", X[:,:,:,5], affine)
