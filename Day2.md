@@ -1,6 +1,6 @@
 # Day 2 Work Packages
 
-## Prutvish
+## Pruthvish
 * Complete the dMRI intro from Day 1
 * Run the DIPY DKI and MSDKI frameworks on the reference dataset and inspect the output metric maps
 
@@ -18,7 +18,7 @@
   * Push the preprocessed dataset to the repository
   * Run Victor's comparison pipeline on this new dataset
 
-## Prutvish + Ricardo
+## Pruthvish + Ricardo
 * Ricardo gives Prutvish a mini dMRI lesson
 
 ## Victor + Prutvish
