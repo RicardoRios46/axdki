@@ -69,9 +69,9 @@ A[..., 3] = (b**2 / 6) * (5*c4 - 6*c2 + 1)
 A[..., 4] = (b**2 / 6) * (0.5 * c2 * (5*c2 - 3))
 A[..., 5] = (b**2 / 6) * (-15/2 * (c4 - c2))
 
-A = A.reshape(-1, 6)
-maskdata_log = np.log(maskdata)
-maskdata_log = maskdata_log.reshape(-1)
+#A = A.reshape(-1, 6)
+#maskdata_log = np.log(maskdata)
+#maskdata_log = maskdata_log.reshape(-1)
 
 
 nx, ny, nz, nt = maskdata.shape
@@ -96,10 +96,111 @@ for v in range(S.shape[0]):
 
 X = X.reshape(nx, ny, nz, 6)
 
+Dperp=X[:,:,:,1]
+Dpara=X[:,:,:,2]
+Wperp=X[:,:,:,3]
+Wpara=X[:,:,:,4]
+Wmean=X[:,:,:,5]
 
-save_nifti("/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_sample/test_lucas/logS0.nii.gz", X[:,:,:,0], affine)
-save_nifti("/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_sample/test_lucas/Dperp.nii.gz", X[:,:,:,1], affine)
-save_nifti("/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_sample/test_lucas/Dpara.nii.gz", X[:,:,:,2], affine)
-save_nifti("/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_sample/test_lucas/Wperp.nii.gz", X[:,:,:,3], affine)
-save_nifti("/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_sample/test_lucas/Wpara.nii.gz", X[:,:,:,4], affine)
-save_nifti("/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_sample/test_lucas/Wmean.nii.gz", X[:,:,:,5], affine)
+#save_nifti("/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_sample/test_lucas/logS0.nii.gz", X[:,:,:,0], affine)
+#save_nifti("/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_sample/test_lucas/Dperp.nii.gz", X[:,:,:,1], affine)
+#save_nifti("/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_sample/test_lucas/Dpara.nii.gz", X[:,:,:,2], affine)
+#save_nifti("/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_sample/test_lucas/Wperp.nii.gz", X[:,:,:,3], affine)
+#save_nifti("/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_sample/test_lucas/Wpara.nii.gz", X[:,:,:,4], affine)
+#save_nifti("/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_sample/test_lucas/Wmean.nii.gz", X[:,:,:,5], affine)
+
+
+
+
+
+# =========================
+# DEFINE B-SHELLS
+# =========================
+b_unique = np.unique(bvals)
+b_unique = np.sort(b_unique)
+
+# tolérance (comme opt.bthresh MATLAB)
+b_thresh = 50  
+
+# =========================
+# powder AVERAGE
+# =========================
+S_powder_list = []
+
+for b in b_unique:
+    inds = np.abs(bvals - b) < b_thresh
+    # moyenne sur directions
+    S_mean = np.mean(maskdata[..., inds], axis=-1)  # (nx,ny,nz)
+    S_powder_list.append(S_mean)
+
+S_powder = np.stack(S_powder_list, axis=0)
+S_powder = np.clip(S_powder, 1e-6, None)
+logS = np.log(S_powder)
+
+nb = len(b_unique)
+Nvox = nx * ny * nz
+
+logS = logS.reshape(nb, -1)
+#mask_flat = mask.reshape(-1) #mask is alreay flat
+
+# =========================
+# DESIGN MATRIX (Ap)
+# =========================
+b = b_unique[:, None]  # (nb,1)
+
+Ap = np.concatenate([
+    np.ones_like(b),   # S0
+    -b,                # D
+    (b**2) / 6         # W
+], axis=1)             # (nb, 3)
+
+# =========================
+# FAST FULL VECTORIZED SOLVE
+# =========================
+# (Ap^T Ap)^-1 Ap^T
+ATA = Ap.T @ Ap
+ATA_inv = np.linalg.inv(ATA + 1e-6 * np.eye(3))
+AT = Ap.T
+
+# solution globale
+X = ATA_inv @ (AT @ logS)   # (3, Nvox)
+
+# appliquer masque
+X[:, ~mask] = 0
+
+# =========================
+# RESHAPE OUTPUTS
+# =========================
+X = X.reshape(3, nx, ny, nz)
+
+logS0 = X[0]
+Dpowder = X[1]
+Wpowder = X[2]
+
+S0 = np.exp(logS0)
+
+#save_nifti("/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_sample/test_lucas/S0_powder.nii.gz", S0.astype(np.float32), affine)
+#save_nifti("/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_sample/test_lucas/Dpowder.nii.gz", Dpowder.astype(np.float32), affine)
+#save_nifti("/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_sample/test_lucas/Wpowder.nii.gz", Wpowder.astype(np.float32), affine)
+
+
+# =========================
+# FINAL COMPUTATION 
+# =========================
+
+Dmean = 1/3*Dpara + 2/3*Dperp
+Wperp = Wperp/(Dperp**2)
+Wpara = Wpara/(Dpara**2)
+Wmean = Wmean/(Dmean**2)
+Wpowder = Wpowder/(Dpowder**2)
+
+FA = np.sqrt( 3/2* ((Dpara-Dmean)**2+2*(Dperp-Dmean)**2) / (Dpara**2 + 2*Dperp**2) )
+
+# need to setup direction to produce FA-RGB
+
+save_nifti("/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_sample/test_lucas/Dmean_final.nii.gz", Dmean.astype(np.float32), affine)
+save_nifti("/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_sample/test_lucas/Wperp_final.nii.gz", Wperp.astype(np.float32), affine)
+save_nifti("/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_sample/test_lucas/Wpara_final.nii.gz", Wpara.astype(np.float32), affine)
+save_nifti("/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_sample/test_lucas/Wmean_final.nii.gz", Wmean.astype(np.float32), affine)
+save_nifti("/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_sample/test_lucas/Wpowder_final.nii.gz", Wpowder.astype(np.float32), affine)
+save_nifti("/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_sample/test_lucas/FA_final.nii.gz", FA.astype(np.float32), affine)
