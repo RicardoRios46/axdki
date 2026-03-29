@@ -97,6 +97,9 @@ for v in range(S.shape[0]):
 X = X.reshape(nx, ny, nz, 6)
 
 
-save_nifti("/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_sample/test_lucas/S0.nii.gz", X[:,:,:,0], affine)
+save_nifti("/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_sample/test_lucas/logS0.nii.gz", X[:,:,:,0], affine)
 save_nifti("/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_sample/test_lucas/Dperp.nii.gz", X[:,:,:,1], affine)
+save_nifti("/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_sample/test_lucas/Dpara.nii.gz", X[:,:,:,2], affine)
+save_nifti("/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_sample/test_lucas/Wperp.nii.gz", X[:,:,:,3], affine)
+save_nifti("/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_sample/test_lucas/Wpara.nii.gz", X[:,:,:,4], affine)
 save_nifti("/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_sample/test_lucas/Wmean.nii.gz", X[:,:,:,5], affine)
