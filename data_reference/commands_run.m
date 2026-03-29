@@ -1,2 +1,2 @@
 opt = struct('GPU',0,'tvReg',0,'tvRegVec',0);
-[Dmean,Dpar,Dperp,Wmean,Kpar,Kperp,FA,fshells,FAvec,Dpowder,Wpowder] = nii2kurt('..\axdki\data_sample\sub-01\dwi\sub-01_run-01_acq-lte_desc-preproc_dwi.nii.gz', '..\axdki\data_sample\sub-01\dwi\sub-01_run-01_acq-lte_desc-preproc_dwi',0,[],opt,'..\process_data_from_ricardo2\');
+[Dmean,Dpar,Dperp,Wmean,Kpar,Kperp,FA,fshells,FAvec,Dpowder,Wpowder] = nii2kurt('..\axdki\data_sample\sub-01\dwi\sub-01_run-01_acq-lte_desc-preproc_dwi.nii.gz', '..\axdki\data_sample\sub-01\dwi\sub-01_run-01_acq-lte_desc-preproc_dwi',0,'..\axdki\data_sample\sub-01\dwi\sub-01_run-01_space-orig_desc-brain_mask.nii.gz',opt,'..\axdki\data_reference\');
