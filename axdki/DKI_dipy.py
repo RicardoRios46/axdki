@@ -10,18 +10,21 @@ test_fname = '/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_
 test_bval_fname = '/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_sample/sub-01/dwi/sub-01_run-01_acq-lte_desc-preproc_dwi.bval'
 test_bvec_fname = '/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_sample/sub-01/dwi/sub-01_run-01_acq-lte_desc-preproc_dwi.bvec'
 
+mask_fname = '/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_sample/sub-01/dwi/sub-01_run-01_space-orig_desc-brain_mask.nii.gz'
+
 data, affine = load_nifti(test_fname)
 bvals, bvecs = read_bvals_bvecs(test_bval_fname, test_bvec_fname)
 gtab = gradient_table(bvals, bvecs=bvecs)
 
 from dipy.segment.mask import bounding_box, crop, median_otsu
 
-maskdata, mask = median_otsu(data, vol_idx=range(10, 49), median_radius=3, numpass=1, dilate=2)
+#maskdata, mask = median_otsu(data, vol_idx=range(10, 49), median_radius=3, numpass=1, dilate=2)
+mask, _ = load_nifti(mask_fname)
+maskdata = data*mask[:,:,:,None]
+#mins, maxs = bounding_box(mask)
 
-mins, maxs = bounding_box(mask)
-
-maskdata = crop(maskdata, mins, maxs)
-mask = crop(mask, mins, maxs)
+#maskdata = crop(maskdata, mins, maxs)
+#mask = crop(mask, mins, maxs)
 
 tenmodel = dti.TensorModel(gtab, fit_method="WLS")
 
@@ -199,8 +202,8 @@ FA = np.sqrt( 3/2* ((Dpara-Dmean)**2+2*(Dperp-Dmean)**2) / (Dpara**2 + 2*Dperp**
 # need to setup direction to produce FA-RGB
 
 save_nifti("/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_sample/test_lucas/Dmean_final.nii.gz", Dmean.astype(np.float32), affine)
-save_nifti("/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_sample/test_lucas/Wperp_final.nii.gz", Wperp.astype(np.float32), affine)
-save_nifti("/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_sample/test_lucas/Wpara_final.nii.gz", Wpara.astype(np.float32), affine)
+save_nifti("/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_sample/test_lucas/Kperp_final.nii.gz", Wperp.astype(np.float32), affine)
+save_nifti("/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_sample/test_lucas/Kpar_final.nii.gz", Wpara.astype(np.float32), affine)
 save_nifti("/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_sample/test_lucas/Wmean_final.nii.gz", Wmean.astype(np.float32), affine)
 save_nifti("/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_sample/test_lucas/Wpowder_final.nii.gz", Wpowder.astype(np.float32), affine)
 save_nifti("/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_sample/test_lucas/FA_final.nii.gz", FA.astype(np.float32), affine)
