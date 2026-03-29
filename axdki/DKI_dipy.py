@@ -30,33 +30,13 @@ tenmodel = dti.TensorModel(gtab, fit_method="WLS")
 
 tenfit = tenmodel.fit(maskdata)
 
-eigen_vec_1 = tenfit.evecs.astype(np.float32)[:,:,:,0] # extract first eigenvector
-#save_nifti("tensor_evecs_1.nii.gz", tenfit.evecs.astype(np.float32), affine)
-
-"""
-NO NEED vectors are alreay normalized
-# eigenvectors normalization 
-v_norm = np.linalg.norm(eigen_vec_1, axis=-1, keepdims=True)
-eigen_vec_1 = eigen_vec_1 / (v_norm + 1e-12)
-
-# bvec normalization 
-g_norm = np.linalg.norm(bvecs, axis=1, keepdims=True)
-bvec = bvecs / (g_norm + 1e-12)
-"""
-
-
-#save_nifti("cos_theta_nonnorm.nii.gz", cos_theta, affine)
-
+eigen_vec_1 = tenfit.evecs.astype(np.float32)[:,:,:,:,0] # extract first eigenvector
 
 #### DKI PART
 
 # calculus of cos(theta)
-cos_theta = np.sum(
-    eigen_vec_1[..., np.newaxis, :] * 
-    bvecs[np.newaxis, np.newaxis, np.newaxis, :, :],
-    axis=-1
-)
-
+cos_theta = np.einsum('xyzi,ti->xyzt', eigen_vec_1, bvecs)
+#save_nifti("/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_sample/test_lucas/cos_theta_WLS_last.nii.gz", cos_theta, affine)
 
 b = bvals[None, None, None, :]
 c = cos_theta
@@ -72,30 +52,25 @@ A[..., 3] = (b**2 / 6) * (5*c4 - 6*c2 + 1)
 A[..., 4] = (b**2 / 6) * (0.5 * c2 * (5*c2 - 3))
 A[..., 5] = (b**2 / 6) * (-15/2 * (c4 - c2))
 
-#A = A.reshape(-1, 6)
-#maskdata_log = np.log(maskdata)
-#maskdata_log = maskdata_log.reshape(-1)
-
-
 nx, ny, nz, nt = maskdata.shape
+Nvox = nx * ny * nz
 
 S = np.log(np.clip(maskdata, 1e-6, None))
-S = S.reshape(-1, nt)
-A = A.reshape(-1, nt, 6)
-mask = mask.reshape(-1)
+S = S.reshape(Nvox, nt)
 
-X = np.zeros((S.shape[0], 6))
+A = A.reshape(Nvox, nt, 6)
+mask_flat = mask.reshape(Nvox)
 
-I = np.eye(6) * 1e-6
+ATA = np.einsum('vti,vtj->vij', A, A)
 
-for v in range(S.shape[0]):
-    if not mask[v]:
-        continue
-    Av = A[v]
-    y = S[v]
-    ATA = Av.T @ Av
-    ATy = Av.T @ y
-    X[v] = np.linalg.solve(ATA + I, ATy)
+ATy = np.einsum('vti,vt->vi', A, S)
+
+I = np.eye(6)[None, :, :]  # (1,6,6)
+ATA_reg = ATA + 1e-6 * I
+
+X = np.linalg.solve(ATA_reg, ATy[..., None])[..., 0]  # (Nvox,6)
+
+X[~mask_flat] = 0
 
 X = X.reshape(nx, ny, nz, 6)
 
@@ -201,9 +176,12 @@ FA = np.sqrt( 3/2* ((Dpara-Dmean)**2+2*(Dperp-Dmean)**2) / (Dpara**2 + 2*Dperp**
 
 # need to setup direction to produce FA-RGB
 
-save_nifti("/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_sample/test_lucas/Dmean_final.nii.gz", Dmean.astype(np.float32), affine)
+save_nifti("/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_sample/test_lucas/Dmean_final.nii.gz", 1000*Dmean.astype(np.float32), affine)
 save_nifti("/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_sample/test_lucas/Kperp_final.nii.gz", Wperp.astype(np.float32), affine)
 save_nifti("/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_sample/test_lucas/Kpar_final.nii.gz", Wpara.astype(np.float32), affine)
 save_nifti("/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_sample/test_lucas/Wmean_final.nii.gz", Wmean.astype(np.float32), affine)
 save_nifti("/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_sample/test_lucas/Wpowder_final.nii.gz", Wpowder.astype(np.float32), affine)
 save_nifti("/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_sample/test_lucas/FA_final.nii.gz", FA.astype(np.float32), affine)
+save_nifti("/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_sample/test_lucas/Dpar_final.nii.gz", 1000*Dpara.astype(np.float32), affine)
+save_nifti("/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_sample/test_lucas/Dperp_final.nii.gz", 1000*Dperp.astype(np.float32), affine)
+save_nifti("/nfs/khan/trainees/larcamon/baronproject/WIP/brainhack/axdki/data_sample/test_lucas/Dpowder_final.nii.gz", 1000*Dpowder.astype(np.float32), affine)
