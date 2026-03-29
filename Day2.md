@@ -1,8 +1,12 @@
 # Day 2 Work Packages
 
-## Pruthvish
-* Complete the dMRI intro from Day 1
-* Run the DIPY DKI and MSDKI frameworks on the reference dataset and inspect the output metric maps
+
+## Alexandra-Anderson
+* Curate a third (maybe even a 4th) dataset to broaden our testing coverage:
+  * Find an open-access dataset that supports the DKI model (multi-shell, b ≥ 2000 s/mm², ≥ 30 directions)
+  * Download and preprocess the data (DIPY or MRtrix are both fine)
+  * Push the preprocessed dataset to the repository
+  * Run Victor's comparison pipeline on this new dataset
 
 ## Victor
 * Build a pipeline to compare reference MATLAB outputs vs the Python implementation
@@ -11,12 +15,10 @@
 * Run the comparison pipeline on the final implementation and all curated datasets
 * Quantify the results (mean and max absolute error per metric) so we have concrete numbers ready for the presentation
 
-## Alexandra-Anderson
-* Curate a third (maybe even a 4th) dataset to broaden our testing coverage:
-  * Find an open-access dataset that supports the DKI model (multi-shell, b ≥ 2000 s/mm², ≥ 30 directions)
-  * Download and preprocess the data (DIPY or MRtrix are both fine)
-  * Push the preprocessed dataset to the repository
-  * Run Victor's comparison pipeline on this new dataset
+
+## Pruthvish
+* Complete the dMRI intro from Day 1
+* Run the DIPY DKI and MSDKI frameworks on the reference dataset and inspect the output metric maps
 
 ## Pruthvish + Ricardo
 * Ricardo gives Prutvish a mini dMRI lesson
