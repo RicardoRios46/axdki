@@ -9,3 +9,4 @@ version = "0.1.0"
 
 [dependencies]
 dipy = ">=1.12.0,<2"
+fury = ">=0.12.0,<0.13"
