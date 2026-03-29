@@ -22,6 +22,7 @@ Check the vibe coded plan [here](ThePlan.md)
 6. Provide tests and a tutorial notebook for the DIPY community.
 
 [Day 2 work packages](Day2.md)
+
 [Day 2 Git Repository](https://github.com/RicardoRios46/dipy/tree/axdki)
 
 
