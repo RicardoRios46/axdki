@@ -28,10 +28,14 @@
 - Moving the A1 and A2 creation to the fit method, so the model only receive gtab
 - 
 
+# Day 04
+- 
+
 # Overall ToDo
-- Documentation: Create an example page that document theory and fitting (dipy/docs/examples)
+- Integration
 - Predict: Implement the foward model. Methods  Part of dipy/reconst/axdki. Used for pytest.
 - Test: Implement pytest dipy/reconst/tests/tests_axdki
+- Documentation: Create an example page that document theory and fitting (dipy/docs/examples)
 
 ## Optional ToDo
 - CLI: Should we implement a CLI interface???
