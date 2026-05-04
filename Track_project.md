@@ -29,7 +29,12 @@
 - 
 
 # Day 04
-- 
+## Progress
+- Fixed bug with Kmaps beign different. Results between implementation are the same
+
+## ToDo
+- Code is not using mask for fitting purposes. Implement
+- Mimic dipy solver for OLS and WLS.
 
 # Overall ToDo
 - Integration
