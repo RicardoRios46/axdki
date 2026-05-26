@@ -32,6 +32,10 @@
 ## Progress
 - Fixed bug with Kmaps beign different. Results between implementation are the same
 
+# Day 05
+- Lucas code refactoring.
+- Planning mask impementation. For now just applying the mask after calculation
+
 ## ToDo
 - Code is not using mask for fitting purposes. Implement
 - Mimic dipy solver for OLS and WLS.
